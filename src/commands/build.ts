@@ -4,6 +4,7 @@ import { loadConfig } from '../core/config.js'
 import { discoverFiles } from '../core/discover.js'
 import { PageCache } from '../core/cache.js'
 import { renderLayout } from '../templates/layout.js'
+import { minifyHtml, formatBytes, pctSaved } from '../core/minify.js'
 
 export async function build(cwd: string = process.cwd(), outDir?: string): Promise<string> {
   const { config } = loadConfig(cwd)
@@ -24,8 +25,12 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
   fs.rmSync(distDir, { recursive: true, force: true })
   fs.mkdirSync(distDir, { recursive: true })
 
-  for (const page of cache.all()) {
-    if (!page.ok) continue   // already warned above; don't write broken HTML to dist/
+  let totalOriginal = 0
+  let totalMinified = 0
+  const pages = cache.all().filter((p) => p.ok)
+
+  for (const page of pages) {
+    if (!page.ok) continue
 
     const html = renderLayout({
       page,
@@ -33,16 +38,31 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
       siteName: config.name,
       liveReload: false,
     })
+
+    const minified = await minifyHtml(html)
+    const origSize = Buffer.byteLength(html)
+    const minSize = Buffer.byteLength(minified)
+    totalOriginal += origSize
+    totalMinified += minSize
+
     const filePath =
       page.route === '/'
         ? path.join(distDir, 'index.html')
         : path.join(distDir, page.route.slice(1), 'index.html')
 
     fs.mkdirSync(path.dirname(filePath), { recursive: true })
-    fs.writeFileSync(filePath, html)
-    console.log(`  ✓ ${page.route}`)
+    fs.writeFileSync(filePath, minified)
+
+    const orig = formatBytes(origSize).padStart(8)
+    const min  = formatBytes(minSize).padStart(8)
+    const pct  = pctSaved(origSize, minSize).padStart(5)
+    console.log(`  ✓ ${page.route.padEnd(24)} ${orig} → ${min}  (${pct})`)
   }
 
-  console.log(`\n✓ Built ${cache.all().length} pages → ${path.relative(cwd, distDir)}/`)
+  const origTotal = formatBytes(totalOriginal)
+  const minTotal  = formatBytes(totalMinified)
+  const pct       = pctSaved(totalOriginal, totalMinified)
+  console.log(`\n✓ Built ${pages.length} pages → ${path.relative(cwd, distDir)}/`)
+  console.log(`  size: ${origTotal} → ${minTotal}  (${pct} smaller)\n`)
   return distDir
 }

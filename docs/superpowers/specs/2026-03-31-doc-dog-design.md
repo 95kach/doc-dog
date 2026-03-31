@@ -62,9 +62,10 @@ doc-dog/
 │   ├── .env
 │   ├── docdog.config.json
 │   └── docs/
-│       ├── index.md
-│       └── operations/
-│           └── create.md
+│       ├── index.md              ← API overview
+│       ├── submit.md             ← POST / — submit URL, 202 { status, job_id }
+│       └── jobs/
+│           └── status.md         ← GET /jobs/:job_id — { status: processing|done, result? }
 └── package.json
 ```
 
@@ -82,13 +83,12 @@ type NavItem = { label: string; href: string; children: NavItem[] }
 type Config = {
   name: string          // shown in top-left navbar
   docsDir: string       // relative to CWD, default: "./docs"
-  sidebar: { auto: boolean }
 }
 
 type Runtime = {
   port: number          // default: 3000, auto-increments if taken
-  cdnPort: number       // default: 3100
-  cdnDir: string        // default: "../cdn"
+  cdnPort: number       // default: 3100, from LOCAL_CDN_PORT
+  cdnDir: string        // default: "../cdn", from LOCAL_CDN_DIR
 }
 ```
 
@@ -100,16 +100,17 @@ type Runtime = {
 ```json
 {
   "name": "Chop-Chop",
-  "docsDir": "./docs",
-  "sidebar": { "auto": true }
+  "docsDir": "./docs"
 }
 ```
+
+Sidebar is always auto-generated from the file tree — no config needed.
 
 ### `.env` (in CWD, runtime/infra config)
 ```
 PORT=3000
-CDN_PORT=3100
-CDN_DIR=../cdn
+LOCAL_CDN_PORT=3100
+LOCAL_CDN_DIR=../cdn
 ```
 
 Config is loaded and validated with zod at startup. Invalid config prints a clear error and exits.
@@ -123,8 +124,8 @@ File paths map to URL routes by stripping the `docsDir` prefix and removing the 
 | File | Route |
 |---|---|
 | `docs/index.md` | `/` |
-| `docs/getting-started.md` | `/getting-started` |
-| `docs/operations/create.md` | `/operations/create` |
+| `docs/submit.md` | `/submit` |
+| `docs/jobs/status.md` | `/jobs/status` |
 
 Nested directories become URL path segments. The sidebar NavTree mirrors this hierarchy — folders become groups, files become links.
 

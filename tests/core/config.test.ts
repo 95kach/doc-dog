@@ -98,4 +98,22 @@ describe('loadConfig', () => {
     const { config } = loadConfig(tmpDir)
     expect(config.logo?.image).toBe(path.resolve(tmpDir, './logo.svg'))
   })
+
+  it('resolves openApiDir to absolute path', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test\nopenApiDir: ./api\n'
+    )
+    const { config } = loadConfig(tmpDir)
+    expect(config.openApiDir).toBe(path.resolve(tmpDir, './api'))
+  })
+
+  it('omits openApiDir when not specified', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test\n'
+    )
+    const { config } = loadConfig(tmpDir)
+    expect(config.openApiDir).toBeUndefined()
+  })
 })

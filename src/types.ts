@@ -13,6 +13,7 @@ export type Config = {
   docsDir: string  // absolute path, resolved from CWD
   logo?: { image: string }  // absolute path to logo image file
   customCss?: string  // absolute path to custom CSS file
+  openApiDir?: string // absolute path to directory of OpenAPI specs
 }
 
 export type Runtime = {
@@ -24,3 +25,38 @@ export type Runtime = {
 export type FileEntry = { filePath: string; route: string }
 
 export type SidebarEntry = { page: string; label?: string }
+
+export type ApiParam = {
+  name: string
+  in: string       // path, query, header
+  type: string
+  required: boolean
+  description: string
+}
+
+export type ApiProperty = {
+  name: string     // dot notation for nested: "config.retries"
+  type: string
+  required: boolean
+  description: string
+}
+
+export type ApiResponse = {
+  status: string
+  description: string
+  properties: ApiProperty[]
+}
+
+export type ParsedOperation = {
+  route: string
+  method: string       // lowercase: get, post, put, delete, patch
+  path: string         // /jobs/{id}
+  summary: string
+  description: string
+  parameters: ApiParam[]
+  requestBody: { description: string; required: boolean; properties: ApiProperty[] } | null
+  responses: ApiResponse[]
+  baseUrl: string
+  specName: string
+  filePath: string     // source spec file path
+}

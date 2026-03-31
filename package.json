@@ -13,6 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
     "@fastify/static": "^8.0.0",
     "@markdoc/markdoc": "^0.4.0",
     "chokidar": "^4.0.0",

@@ -16,6 +16,7 @@ export function createDevServer(cache: PageCache, config: Config) {
       'Connection': 'keep-alive',
     })
     sse.add(reply)
+    return reply
   })
 
   app.get('/*', (req, reply) => {

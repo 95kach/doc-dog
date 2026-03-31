@@ -25,6 +25,8 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
   fs.mkdirSync(distDir, { recursive: true })
 
   for (const page of cache.all()) {
+    if (!page.ok) continue   // already warned above; don't write broken HTML to dist/
+
     const html = renderLayout({
       page,
       navTree: cache.navTree,

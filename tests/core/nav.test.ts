@@ -70,4 +70,27 @@ describe('buildNavTree (sidebar)', () => {
     const tree = buildNavTree(['/'], null)
     expect(tree[0].label).toBe('Home')
   })
+
+  it('supports route entries alongside page entries', () => {
+    const routes = ['/', '/get-jobs', '/post-jobs', '/get-jobs-id']
+    const sidebar = [
+      { page: 'index.md', label: 'Start here' },
+      { route: '/get-jobs', label: 'List Jobs' },
+      { route: '/post-jobs', label: 'Create Job' },
+      { route: '/get-jobs-id', label: 'Job Status' },
+    ]
+    const tree = buildNavTree(routes, sidebar)
+    expect(tree).toHaveLength(4)
+    expect(tree[0]).toEqual({ label: 'Start here', href: '/', children: [] })
+    expect(tree[1]).toEqual({ label: 'List Jobs', href: '/get-jobs', children: [] })
+    expect(tree[2]).toEqual({ label: 'Create Job', href: '/post-jobs', children: [] })
+    expect(tree[3]).toEqual({ label: 'Job Status', href: '/get-jobs-id', children: [] })
+  })
+
+  it('derives label from route when label omitted on route entry', () => {
+    const routes = ['/get-jobs-id']
+    const sidebar = [{ route: '/get-jobs-id' }]
+    const tree = buildNavTree(routes, sidebar)
+    expect(tree[0].label).toBe('Get jobs id')
+  })
 })

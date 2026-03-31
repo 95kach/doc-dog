@@ -1,6 +1,8 @@
 - page: index.md
   label: Start here
-- page: jobs/index.md
-  label: Jobs
-- page: "jobs/[:id]/index.md"
+- route: /get-jobs
+  label: List Jobs
+- route: /post-jobs
+  label: Create Job
+- route: /get-jobs-id
   label: Job Status

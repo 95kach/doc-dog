@@ -24,7 +24,7 @@ export type Runtime = {
 
 export type FileEntry = { filePath: string; route: string }
 
-export type SidebarEntry = { page: string; label?: string }
+export type SidebarEntry = { page?: string; route?: string; label?: string }
 
 export type ApiParam = {
   name: string

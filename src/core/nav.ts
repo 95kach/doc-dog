@@ -13,9 +13,9 @@ function buildFromSidebar(routes: string[], sidebar: SidebarEntry[]): NavItem[] 
   const routeSet = new Set(routes)
   return sidebar
     .map((entry): NavItem | null => {
-      const route = pageToRoute(entry.page)
+      const route = entry.route ?? pageToRoute(entry.page!)
       if (!routeSet.has(route)) return null
-      const label = entry.label ?? deriveLabel(entry.page)
+      const label = entry.label ?? (entry.page ? deriveLabel(entry.page) : toLabel(route.split('/').filter(Boolean).pop() ?? ''))
       return { label, href: route, children: [] }
     })
     .filter((item): item is NavItem => item !== null)

@@ -56,8 +56,7 @@ export function renderLayout(opts: {
 <body>
   <nav class="navbar">
     <a href="/" class="navbar-brand">
-      ${logoSrc ? `<img src="${logoSrc}" alt="${escHtml(siteName)}" class="navbar-logo">` : ''}
-      ${escHtml(siteName)}
+      ${logoSrc ? `<img src="${logoSrc}" alt="${escHtml(siteName)}" class="navbar-logo">` : escHtml(siteName)}
     </a>
   </nav>
   <div class="layout">

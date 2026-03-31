@@ -21,10 +21,10 @@ describe('loadConfig', () => {
     delete process.env.LOCAL_CDN_DIR
   })
 
-  it('loads valid config with name and docsDir', () => {
+  it('loads valid YAML config with name and docsDir', () => {
     fs.writeFileSync(
-      path.join(tmpDir, 'docdog.config.json'),
-      JSON.stringify({ name: 'Test Site', docsDir: './docs' })
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test Site\ndocsDir: ./docs\n'
     )
     const { config } = loadConfig(tmpDir)
     expect(config.name).toBe('Test Site')
@@ -33,8 +33,8 @@ describe('loadConfig', () => {
 
   it('uses default docsDir when not specified', () => {
     fs.writeFileSync(
-      path.join(tmpDir, 'docdog.config.json'),
-      JSON.stringify({ name: 'Test' })
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test\n'
     )
     const { config } = loadConfig(tmpDir)
     expect(config.docsDir).toBe(path.resolve(tmpDir, './docs'))
@@ -42,8 +42,8 @@ describe('loadConfig', () => {
 
   it('reads PORT from environment', () => {
     fs.writeFileSync(
-      path.join(tmpDir, 'docdog.config.json'),
-      JSON.stringify({ name: 'Test' })
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test\n'
     )
     process.env.PORT = '4000'
     const { runtime } = loadConfig(tmpDir)
@@ -52,8 +52,8 @@ describe('loadConfig', () => {
 
   it('reads LOCAL_CDN_PORT from environment', () => {
     fs.writeFileSync(
-      path.join(tmpDir, 'docdog.config.json'),
-      JSON.stringify({ name: 'Test' })
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test\n'
     )
     process.env.LOCAL_CDN_PORT = '4100'
     const { runtime } = loadConfig(tmpDir)
@@ -62,13 +62,40 @@ describe('loadConfig', () => {
 
   it('throws ZodError when name is missing', () => {
     fs.writeFileSync(
-      path.join(tmpDir, 'docdog.config.json'),
-      JSON.stringify({ docsDir: './docs' })
+      path.join(tmpDir, 'docdog.yaml'),
+      'docsDir: ./docs\n'
     )
     expect(() => loadConfig(tmpDir)).toThrow()
   })
 
-  it('throws when docdog.config.json is missing', () => {
-    expect(() => loadConfig(tmpDir)).toThrow(/docdog.config.json/)
+  it('throws when docdog.yaml is missing', () => {
+    expect(() => loadConfig(tmpDir)).toThrow(/docdog\.yaml/)
+  })
+
+  it('resolves customCss to absolute path', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test\ncustomCss: ./theme.css\n'
+    )
+    const { config } = loadConfig(tmpDir)
+    expect(config.customCss).toBe(path.resolve(tmpDir, './theme.css'))
+  })
+
+  it('omits customCss when not specified', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test\n'
+    )
+    const { config } = loadConfig(tmpDir)
+    expect(config.customCss).toBeUndefined()
+  })
+
+  it('resolves logo.image to absolute path', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test\nlogo:\n  image: ./logo.svg\n'
+    )
+    const { config } = loadConfig(tmpDir)
+    expect(config.logo?.image).toBe(path.resolve(tmpDir, './logo.svg'))
   })
 })

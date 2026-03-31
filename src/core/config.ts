@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import YAML from 'yaml'
 import dotenv from 'dotenv'
 import type { Config, Runtime } from '../types.js'
 
@@ -8,6 +9,7 @@ const ConfigSchema = z.object({
   name: z.string(),
   docsDir: z.string().default('./docs'),
   logo: z.object({ image: z.string() }).optional(),
+  customCss: z.string().optional(),
 })
 
 const EnvSchema = z.object({
@@ -23,12 +25,12 @@ export function loadConfig(cwd: string): { config: Config; runtime: Runtime } {
     : {}
   const mergedEnv = { ...process.env, ...fileEnv }
 
-  const configPath = path.join(cwd, 'docdog.config.json')
+  const configPath = path.join(cwd, 'docdog.yaml')
   if (!fs.existsSync(configPath)) {
-    throw new Error(`docdog.config.json not found in ${cwd}`)
+    throw new Error(`docdog.yaml not found in ${cwd}`)
   }
 
-  const raw = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+  const raw = YAML.parse(fs.readFileSync(configPath, 'utf-8'))
   const parsed = ConfigSchema.parse(raw)
   const env = EnvSchema.parse(mergedEnv)
 
@@ -37,6 +39,7 @@ export function loadConfig(cwd: string): { config: Config; runtime: Runtime } {
       name: parsed.name,
       docsDir: path.resolve(cwd, parsed.docsDir),
       logo: parsed.logo ? { image: path.resolve(cwd, parsed.logo.image) } : undefined,
+      customCss: parsed.customCss ? path.resolve(cwd, parsed.customCss) : undefined,
     },
     runtime: {
       port: env.PORT,

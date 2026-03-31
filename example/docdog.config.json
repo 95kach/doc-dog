@@ -2,6 +2,6 @@
   "name": "Chop-Chop",
   "docsDir": "./docs",
   "logo": {
-    "image": "./images/logo.png"
+    "image": "./images/logo.svg"
   }
 }

@@ -6,6 +6,8 @@ import { PageCache } from '../core/cache.js'
 import { renderLayout } from '../templates/layout.js'
 import { buildCss } from '../core/css.js'
 import { minifyHtml, minifyCss, formatBytes, pctSaved } from '../core/minify.js'
+import { discoverOpenApiSpecs } from '../core/discover-openapi.js'
+import { renderOpenApiOperation } from '../core/render-openapi.js'
 
 function copyLogo(logoFile: string, distDir: string): string | null {
   if (!fs.existsSync(logoFile)) {
@@ -31,6 +33,19 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
     console.warn(`\n⚠  ${failures.length} page(s) failed to render:`)
     for (const f of failures) {
       console.warn(`  ✗ ${f.filePath}\n    ${f.error}`)
+    }
+  }
+
+  // Discover and render OpenAPI pages
+  if (config.openApiDir) {
+    const ops = await discoverOpenApiSpecs(config.openApiDir)
+    for (const op of ops) {
+      const html = renderOpenApiOperation(op)
+      cache.set(op.route, { ok: true, route: op.route, filePath: op.filePath, html, frontmatter: {} })
+    }
+    if (ops.length > 0) {
+      cache.rebuildNav()
+      console.log(`  📡 ${ops.length} API endpoint(s) from ${config.openApiDir}`)
     }
   }
 

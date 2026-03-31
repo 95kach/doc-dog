@@ -86,4 +86,32 @@ describe('build command', () => {
     expect(css).toContain(':root')
     expect(css).not.toContain('#e11d48')
   })
+
+  it('includes OpenAPI pages in build output', async () => {
+    const apiDir = path.join(tmpDir, 'api')
+    fs.mkdirSync(apiDir)
+    fs.writeFileSync(path.join(apiDir, 'test.yaml'), `openapi: 3.0.3
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+paths:
+  /items:
+    get:
+      summary: List items
+      responses:
+        '200':
+          description: OK
+`)
+    fs.writeFileSync(
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test Docs\ndocsDir: ./docs\nopenApiDir: ./api\n'
+    )
+    await build(tmpDir, distDir)
+    expect(fs.existsSync(path.join(distDir, 'get-items', 'index.html'))).toBe(true)
+    const html = fs.readFileSync(path.join(distDir, 'get-items', 'index.html'), 'utf-8')
+    expect(html).toContain('List items')
+    expect(html).toContain('api-method--get')
+  })
 })

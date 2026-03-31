@@ -15,9 +15,19 @@ export async function createStaticServer(cdnDir: string) {
       return reply.type('text/html').send(renderCdnEmpty())
     })
   } else {
+    const root = path.resolve(cdnDir)
     await app.register(fastifyStatic, {
-      root: path.resolve(cdnDir),
+      root,
       index: 'index.html',
+    })
+    // @fastify/static does not serve index.html for paths without trailing slash
+    app.setNotFoundHandler((req, reply) => {
+      const urlPath = req.url.split('?')[0].replace(/\/$/, '')
+      const indexFile = path.join(root, urlPath, 'index.html')
+      if (fs.existsSync(indexFile)) {
+        return reply.type('text/html').send(fs.readFileSync(indexFile))
+      }
+      return reply.status(404).type('text/plain').send('Not found')
     })
   }
 

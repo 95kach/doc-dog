@@ -2,6 +2,8 @@
   label: Start here
 - route: /get-jobs
   label: List Jobs
+- page: creating-jobs.md
+  label: Creating Jobs Guide
 - route: /post-jobs
   label: Create Job
 - route: /get-jobs-id

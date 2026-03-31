@@ -5,7 +5,8 @@ import * as path from 'node:path'
 import type { PageCache } from '../core/cache.js'
 import type { Config } from '../types.js'
 import { SSEManager } from './sse.js'
-import { renderLayout, render404, STYLE_PATH } from '../templates/layout.js'
+import { renderLayout, render404 } from '../templates/layout.js'
+import { buildCss } from '../core/css.js'
 
 const MIME: Record<string, string> = {
   png: 'image/png',
@@ -22,7 +23,7 @@ export function createDevServer(cache: PageCache, config: Config) {
   const sse = new SSEManager()
 
   app.get('/style.css', (_, reply) =>
-    reply.type('text/css').send(fs.readFileSync(STYLE_PATH))
+    reply.type('text/css').send(buildCss(config.customCss))
   )
 
   // Resolve logo route (e.g. /__logo.png) if logo is configured

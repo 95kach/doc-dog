@@ -3,3 +3,4 @@ dist/
 cdn/
 .env
 .superpowers/
+.DS_Store

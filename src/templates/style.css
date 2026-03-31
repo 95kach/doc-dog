@@ -1,0 +1,159 @@
+:root {
+  --bg:              #fff;
+  --bg-sidebar:      #f8fafc;
+  --bg-code:         #f1f5f9;
+  --bg-pre:          #f8fafc;
+  --text:            #1e293b;
+  --text-heading:    #0f172a;
+  --text-body:       #374151;
+  --text-muted:      #64748b;
+  --text-sidebar:    #475569;
+  --border:          #e2e8f0;
+  --accent:          #2563eb;
+  --accent-bg:       #eff6ff;
+  --accent-live:     #16a34a;
+  --sidebar-width:   240px;
+  --content-max-width: 860px;
+  --navbar-height:   48px;
+  --font:            system-ui, sans-serif;
+  --radius:          4px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0 }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Navbar ──────────────────────────────────────────────── */
+.navbar {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: var(--navbar-height);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.navbar-brand {
+  color: var(--text-heading);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.navbar-logo { height: 28px; width: auto; display: block }
+
+/* ── Layout ──────────────────────────────────────────────── */
+.layout { display: flex; flex: 1 }
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 16px 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.sidebar-section { padding: 0 8px }
+.sidebar a {
+  display: block;
+  padding: 6px 8px;
+  color: var(--text-sidebar);
+  text-decoration: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+.sidebar a:hover { background: var(--bg-code); color: var(--text-heading) }
+.sidebar a.active { background: var(--accent-bg); color: var(--accent); font-weight: 500 }
+.group-label {
+  padding: 8px 8px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.child a { padding-left: 20px }
+
+/* ── Content ─────────────────────────────────────────────── */
+.content { flex: 1; padding: 40px; max-width: var(--content-max-width) }
+.content h1 { color: var(--text-heading); margin-bottom: 16px }
+.content h2 { color: var(--text-heading); margin: 24px 0 12px }
+.content h3 { color: var(--text-heading); margin: 20px 0 8px }
+.content p  { line-height: 1.7; margin-bottom: 12px; color: var(--text-body) }
+.content code {
+  background: var(--bg-code);
+  color: var(--text-heading);
+  padding: 2px 6px;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+.content pre {
+  background: var(--bg-pre);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+.content pre code { background: none; padding: 0; color: var(--text-body) }
+.content ul, .content ol { padding-left: 20px; margin-bottom: 12px }
+.content li { line-height: 1.7; color: var(--text-body) }
+.content table { border-collapse: collapse; width: 100%; margin-bottom: 12px }
+.content th, .content td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; font-size: 13px }
+.content th { background: var(--bg-sidebar); color: var(--text-heading); font-weight: 600 }
+
+/* ── Error pages ─────────────────────────────────────────── */
+.error-page { text-align: center; padding: 80px 40px }
+.error-center { display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center }
+.error-code  { font-size: 72px; font-weight: 800; color: var(--border); font-family: monospace }
+.error-message { color: var(--text-heading); font-size: 18px; margin: 12px 0 }
+.error-detail { color: var(--text-muted); font-size: 13px; font-family: monospace; margin: 8px 0 24px; word-break: break-all }
+
+/* ── Button ──────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-decoration: none;
+}
+.btn:hover { background: var(--bg-sidebar) }
+
+/* ── CDN empty ───────────────────────────────────────────── */
+.cdn-icon    { font-size: 48px; margin-bottom: 16px }
+.cdn-title   { color: var(--text-heading); font-size: 20px; margin-bottom: 8px }
+.cdn-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 16px }
+.cdn-subtitle code {
+  background: var(--bg-code);
+  color: var(--text-heading);
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+/* ── Live reload badge ───────────────────────────────────── */
+.live-badge {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--accent-live);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}

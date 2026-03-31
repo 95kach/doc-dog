@@ -3,7 +3,7 @@ import * as path from 'node:path'
 import { loadConfig } from '../core/config.js'
 import { discoverFiles } from '../core/discover.js'
 import { PageCache } from '../core/cache.js'
-import { renderLayout } from '../templates/layout.js'
+import { renderLayout, STYLE_PATH } from '../templates/layout.js'
 import { minifyHtml, formatBytes, pctSaved } from '../core/minify.js'
 
 function copyLogo(logoFile: string, distDir: string): string | null {
@@ -36,6 +36,7 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
   fs.rmSync(distDir, { recursive: true, force: true })
   fs.mkdirSync(distDir, { recursive: true })
 
+  fs.copyFileSync(STYLE_PATH, path.join(distDir, 'style.css'))
   const logoSrc = config.logo ? copyLogo(config.logo.image, distDir) : null
 
   let totalOriginal = 0

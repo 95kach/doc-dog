@@ -12,6 +12,7 @@ export type Config = {
   name: string     // shown in top-left navbar
   docsDir: string  // absolute path, resolved from CWD
   logo?: { image: string }  // absolute path to logo image file
+  customCss?: string  // absolute path to custom CSS file
 }
 
 export type Runtime = {

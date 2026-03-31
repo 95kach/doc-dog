@@ -9,6 +9,11 @@ export async function minifyHtml(html: string): Promise<string> {
   })
 }
 
+export async function minifyCss(css: string): Promise<string> {
+  const result = await minify(`<style>${css}</style>`, { minifyCSS: true })
+  return result.replace(/^<style>/, '').replace(/<\/style>$/, '')
+}
+
 export function formatBytes(n: number): string {
   return n < 1024 ? `${n} B` : `${(n / 1024).toFixed(1)} KB`
 }

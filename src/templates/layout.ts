@@ -109,8 +109,7 @@ function liveReloadScript(): string {
   return `<div class="live-badge">● live reload</div>
 <script>
   const es = new EventSource('/sse');
-  es.onmessage = () => location.reload();
-  es.onerror = () => es.close();
+  es.onmessage = () => { es.close(); location.reload(); };
 </script>`
 }
 

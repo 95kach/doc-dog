@@ -4,7 +4,7 @@ import { loadConfig } from '../core/config.js'
 import { discoverFiles } from '../core/discover.js'
 import { PageCache } from '../core/cache.js'
 import { renderLayout, STYLE_PATH } from '../templates/layout.js'
-import { minifyHtml, formatBytes, pctSaved } from '../core/minify.js'
+import { minifyHtml, minifyCss, formatBytes, pctSaved } from '../core/minify.js'
 
 function copyLogo(logoFile: string, distDir: string): string | null {
   if (!fs.existsSync(logoFile)) {
@@ -36,7 +36,11 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
   fs.rmSync(distDir, { recursive: true, force: true })
   fs.mkdirSync(distDir, { recursive: true })
 
-  fs.copyFileSync(STYLE_PATH, path.join(distDir, 'style.css'))
+  // Minify and write style.css
+  const rawCss = fs.readFileSync(STYLE_PATH, 'utf-8')
+  const minCss = await minifyCss(rawCss)
+  fs.writeFileSync(path.join(distDir, 'style.css'), minCss)
+
   const logoSrc = config.logo ? copyLogo(config.logo.image, distDir) : null
 
   let totalOriginal = 0
@@ -74,10 +78,24 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
     console.log(`  ✓ ${page.route.padEnd(24)} ${orig} → ${min}  (${pct})`)
   }
 
-  const origTotal = formatBytes(totalOriginal)
-  const minTotal  = formatBytes(totalMinified)
-  const pct       = pctSaved(totalOriginal, totalMinified)
+  // Static assets
+  const cssOrig = Buffer.byteLength(rawCss)
+  const cssMin  = Buffer.byteLength(minCss)
+  const cssLine = `${'style.css'.padEnd(24)} ${formatBytes(cssOrig).padStart(8)} → ${formatBytes(cssMin).padStart(8)}  (${pctSaved(cssOrig, cssMin).padStart(5)})`
+  console.log(`  ✓ ${cssLine}`)
+
+  if (config.logo) {
+    const logoFile = config.logo.image
+    if (fs.existsSync(logoFile)) {
+      const logoSize = fs.statSync(logoFile).size
+      const ext = path.extname(logoFile).slice(1)
+      console.log(`  ✓ ${'__logo.' + ext}`)
+    }
+  }
+
+  const allOrig = totalOriginal + cssOrig
+  const allMin  = totalMinified + cssMin
   console.log(`\n✓ Built ${pages.length} pages → ${path.relative(cwd, distDir)}/`)
-  console.log(`  size: ${origTotal} → ${minTotal}  (${pct} smaller)\n`)
+  console.log(`  size: ${formatBytes(allOrig)} → ${formatBytes(allMin)}  (${pctSaved(allOrig, allMin)} smaller)\n`)
   return distDir
 }

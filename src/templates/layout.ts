@@ -5,8 +5,9 @@ export function renderLayout(opts: {
   navTree: NavItem[]
   siteName: string
   liveReload: boolean
+  logoSrc?: string | null
 }): string {
-  const { page, navTree, siteName, liveReload } = opts
+  const { page, navTree, siteName, liveReload, logoSrc } = opts
   const content = page.ok ? page.html : renderErrorContent(page.error)
   const activeRoute = page.route
 
@@ -20,7 +21,8 @@ export function renderLayout(opts: {
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:system-ui,sans-serif;background:#fff;color:#1e293b;display:flex;flex-direction:column;min-height:100vh}
     .navbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 20px;height:48px;display:flex;align-items:center;flex-shrink:0}
-    .navbar-brand{color:#0f172a;font-weight:600;font-size:15px;text-decoration:none}
+    .navbar-brand{color:#0f172a;font-weight:600;font-size:15px;text-decoration:none;display:flex;align-items:center;gap:8px}
+    .navbar-logo{height:28px;width:auto;display:block}
     .layout{display:flex;flex:1}
     .sidebar{width:240px;background:#f8fafc;border-right:1px solid #e2e8f0;padding:16px 0;flex-shrink:0;overflow-y:auto}
     .sidebar-section{padding:0 8px}
@@ -53,7 +55,10 @@ export function renderLayout(opts: {
 </head>
 <body>
   <nav class="navbar">
-    <a href="/" class="navbar-brand">${escHtml(siteName)}</a>
+    <a href="/" class="navbar-brand">
+      ${logoSrc ? `<img src="${logoSrc}" alt="${escHtml(siteName)}" class="navbar-logo">` : ''}
+      ${escHtml(siteName)}
+    </a>
   </nav>
   <div class="layout">
     <aside class="sidebar">

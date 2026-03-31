@@ -1,4 +1,7 @@
 {
   "name": "Chop-Chop",
-  "docsDir": "./docs"
+  "docsDir": "./docs",
+  "logo": {
+    "image": "./images/logo.png"
+  }
 }

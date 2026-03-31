@@ -1,13 +1,41 @@
 import Fastify from 'fastify'
+import * as fs from 'node:fs'
 import * as net from 'node:net'
+import * as path from 'node:path'
 import type { PageCache } from '../core/cache.js'
 import type { Config } from '../types.js'
 import { SSEManager } from './sse.js'
 import { renderLayout, render404 } from '../templates/layout.js'
 
+const MIME: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+  webp: 'image/webp',
+  ico: 'image/x-icon',
+}
+
 export function createDevServer(cache: PageCache, config: Config) {
   const app = Fastify({ logger: false })
   const sse = new SSEManager()
+
+  // Resolve logo route (e.g. /__logo.png) if logo is configured
+  let logoSrc: string | null = null
+  if (config.logo) {
+    const logoFile = config.logo.image
+    const ext = path.extname(logoFile).slice(1).toLowerCase()
+    const mime = MIME[ext] ?? 'application/octet-stream'
+    logoSrc = `/__logo.${ext}`
+
+    app.get(logoSrc, (_, reply) => {
+      if (!fs.existsSync(logoFile)) {
+        return reply.status(404).send('Logo file not found')
+      }
+      return reply.type(mime).send(fs.readFileSync(logoFile))
+    })
+  }
 
   app.get('/sse', (_, reply) => {
     reply.raw.writeHead(200, {
@@ -28,7 +56,7 @@ export function createDevServer(cache: PageCache, config: Config) {
       return reply.status(404).type('text/html').send(render404(route, config.name))
     }
 
-    const html = renderLayout({ page, navTree: cache.navTree, siteName: config.name, liveReload: true })
+    const html = renderLayout({ page, navTree: cache.navTree, siteName: config.name, liveReload: true, logoSrc })
     return reply.status(page.ok ? 200 : 500).type('text/html').send(html)
   })
 

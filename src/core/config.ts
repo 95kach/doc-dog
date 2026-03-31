@@ -7,6 +7,7 @@ import type { Config, Runtime } from '../types.js'
 const ConfigSchema = z.object({
   name: z.string(),
   docsDir: z.string().default('./docs'),
+  logo: z.object({ image: z.string() }).optional(),
 })
 
 const EnvSchema = z.object({
@@ -35,6 +36,7 @@ export function loadConfig(cwd: string): { config: Config; runtime: Runtime } {
     config: {
       name: parsed.name,
       docsDir: path.resolve(cwd, parsed.docsDir),
+      logo: parsed.logo ? { image: path.resolve(cwd, parsed.logo.image) } : undefined,
     },
     runtime: {
       port: env.PORT,

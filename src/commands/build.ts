@@ -6,6 +6,17 @@ import { PageCache } from '../core/cache.js'
 import { renderLayout } from '../templates/layout.js'
 import { minifyHtml, formatBytes, pctSaved } from '../core/minify.js'
 
+function copyLogo(logoFile: string, distDir: string): string | null {
+  if (!fs.existsSync(logoFile)) {
+    console.warn(`  ⚠  logo not found: ${logoFile}`)
+    return null
+  }
+  const ext = path.extname(logoFile)
+  const dest = path.join(distDir, `__logo${ext}`)
+  fs.copyFileSync(logoFile, dest)
+  return `/__logo${ext}`
+}
+
 export async function build(cwd: string = process.cwd(), outDir?: string): Promise<string> {
   const { config } = loadConfig(cwd)
   const distDir = outDir ?? path.join(cwd, 'dist')
@@ -25,6 +36,8 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
   fs.rmSync(distDir, { recursive: true, force: true })
   fs.mkdirSync(distDir, { recursive: true })
 
+  const logoSrc = config.logo ? copyLogo(config.logo.image, distDir) : null
+
   let totalOriginal = 0
   let totalMinified = 0
   const pages = cache.all().filter((p) => p.ok)
@@ -37,6 +50,7 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
       navTree: cache.navTree,
       siteName: config.name,
       liveReload: false,
+      logoSrc,
     })
 
     const minified = await minifyHtml(html)

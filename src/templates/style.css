@@ -157,3 +157,36 @@ body {
   color: var(--accent-live);
   box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
+
+/* ── API endpoint pages ─────────────────────────────────── */
+.api-endpoint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.api-method {
+  font-weight: 700;
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  text-transform: uppercase;
+  font-family: monospace;
+}
+.api-method--get    { color: var(--api-get, #22c55e); background: #f0fdf4 }
+.api-method--post   { color: var(--api-post, #3b82f6); background: #eff6ff }
+.api-method--put    { color: var(--api-put, #f97316); background: #fff7ed }
+.api-method--delete { color: var(--api-delete, #ef4444); background: #fef2f2 }
+.api-method--patch  { color: var(--api-patch, #eab308); background: #fefce8 }
+.api-path {
+  font-size: 15px;
+  color: var(--text-heading);
+  background: none;
+  padding: 0;
+}
+.api-param { color: var(--accent); font-weight: 600 }
+.api-params-table, .api-schema-table { margin-bottom: 16px }

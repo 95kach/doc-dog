@@ -25,9 +25,16 @@ export async function preview(cwd: string = process.cwd()): Promise<void> {
   await app.listen({ port, host: '127.0.0.1' })
   console.log(`\n🐕 doc-dog running at http://localhost:${port}\n`)
 
-  const watcher = chokidar.watch(config.docsDir, { ignoreInitial: true })
+  const watchPaths: string[] = [config.docsDir]
+  if (config.customCss) watchPaths.push(config.customCss)
+  const watcher = chokidar.watch(watchPaths, { ignoreInitial: true })
 
   watcher.on('change', (filePath: string) => {
+    if (config.customCss && path.resolve(filePath) === config.customCss) {
+      sse.broadcast()
+      console.log(`  ↺ ${path.relative(cwd, filePath)} (custom CSS)`)
+      return
+    }
     const route = cache.getRouteForFile(filePath)
     if (route) {
       cache.update(filePath, route)

@@ -17,8 +17,8 @@ describe('build command', () => {
     fs.writeFileSync(path.join(docsDir, 'submit.md'), '# Submit\n\nPost a URL.')
     fs.writeFileSync(path.join(docsDir, 'jobs', 'status.md'), '# Status\n\nCheck job.')
     fs.writeFileSync(
-      path.join(tmpDir, 'docdog.config.json'),
-      JSON.stringify({ name: 'Test Docs', docsDir: './docs' })
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test Docs\ndocsDir: ./docs\n'
     )
     delete process.env.PORT
     delete process.env.LOCAL_CDN_PORT
@@ -62,5 +62,28 @@ describe('build command', () => {
   it('returns the distDir path', async () => {
     const result = await build(tmpDir, distDir)
     expect(result).toBe(distDir)
+  })
+
+  it('includes custom CSS in built style.css', async () => {
+    const customCssPath = path.join(tmpDir, 'theme.css')
+    fs.writeFileSync(customCssPath, ':root { --accent: #e11d48; }')
+    fs.writeFileSync(
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test Docs\ndocsDir: ./docs\ncustomCss: ./theme.css\n'
+    )
+    await build(tmpDir, distDir)
+    const css = fs.readFileSync(path.join(distDir, 'style.css'), 'utf-8')
+    expect(css).toContain('#e11d48')
+  })
+
+  it('builds without error when customCss file is missing', async () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'docdog.yaml'),
+      'name: Test Docs\ndocsDir: ./docs\ncustomCss: ./nonexistent.css\n'
+    )
+    await build(tmpDir, distDir)
+    const css = fs.readFileSync(path.join(distDir, 'style.css'), 'utf-8')
+    expect(css).toContain(':root')
+    expect(css).not.toContain('#e11d48')
   })
 })

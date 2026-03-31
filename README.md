@@ -1,10 +1,10 @@
 # doc-dog
 
-A CLI tool that turns a directory of Markdown files into a documentation website using [Markdoc](https://markdoc.dev). Lightweight alternative to Redocly Realm.
+A CLI tool that turns a directory of Markdown files and OpenAPI specs into a documentation website using [Markdoc](https://markdoc.dev). Lightweight alternative to Redocly Realm.
 
 ## Usage
 
-Run from inside a project directory that contains `docdog.config.json`:
+Run from inside a project directory that contains `docdog.yaml`:
 
 ```bash
 npx @docdog/cli preview   # dev server with live reload
@@ -14,17 +14,24 @@ npx @docdog/cli deploy    # build + copy to cdn/ + local CDN server
 
 ## Configuration
 
-**`docdog.config.json`** — content config, lives next to your docs:
+**`docdog.yaml`** — content config, lives next to your docs:
 
-```json
-{
-  "name": "My Project",
-  "docsDir": "./docs",
-  "logo": {
-    "image": "./images/logo.svg"
-  }
-}
+```yaml
+name: My Project
+docsDir: ./docs
+logo:
+  image: ./images/logo.svg
+customCss: ./theme-overrides.css
+openApiDir: ./api
 ```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | yes | Site name shown in the navbar |
+| `docsDir` | no | Path to markdown docs (default: `./docs`) |
+| `logo.image` | no | Path to logo image (SVG, PNG, etc.) |
+| `customCss` | no | Path to CSS file appended after default styles |
+| `openApiDir` | no | Path to directory of OpenAPI 3.x spec files |
 
 **`.env`** — runtime/infra config:
 
@@ -38,18 +45,34 @@ LOCAL_CDN_DIR=../cdn
 
 Define page labels and sidebar order. Without this file the sidebar is auto-generated from the file tree.
 
+Entries can reference markdown pages (`page:`) or any route (`route:`), including OpenAPI-generated routes:
+
 ```yaml
 - page: index.md
   label: Start here
-- page: jobs/index.md
-  label: Jobs
-- page: "jobs/[:id]/index.md"
+- route: /get-jobs
+  label: List Jobs
+- page: creating-jobs.md
+  label: Creating Jobs Guide
+- route: /post-jobs
+  label: Create Job
+- route: /get-jobs-id
   label: Job Status
+```
+
+### Custom CSS
+
+Add a `customCss` field to `docdog.yaml` pointing to your CSS file. It is appended after the default styles, so you can override any CSS custom property:
+
+```css
+:root {
+  --accent: #e11d48;
+}
 ```
 
 ### Theming
 
-All styles are defined as CSS custom properties. Override any of them in your own stylesheet:
+All styles are defined as CSS custom properties:
 
 ```css
 :root {
@@ -69,68 +92,98 @@ All styles are defined as CSS custom properties. Override any of them in your ow
   --content-max-width: 860px;
   --font:            system-ui, sans-serif;
   --radius:          4px;
+  --api-get:         #22c55e;
+  --api-post:        #3b82f6;
+  --api-put:         #f97316;
+  --api-delete:      #ef4444;
+  --api-patch:       #eab308;
 }
 ```
 
+## OpenAPI Support
+
+Place OpenAPI 3.x spec files (`.yaml`, `.yml`, or `.json`) in a directory and set `openApiDir` in your config. Each operation becomes a styled page with:
+
+- Method badge (GET, POST, PUT, DELETE, PATCH)
+- Path with highlighted parameters
+- Parameters table
+- Request body schema
+- Response schemas
+- Curl and fetch examples
+
+Routes are generated as `/{method}-{path}` (e.g., `GET /jobs/{id}` → `/get-jobs-id`). With multiple spec files, the spec name is prefixed: `/{specName}/{method}-{path}`.
+
+OpenAPI routes can be mixed with markdown pages in the sidebar. Changes to spec files trigger live reload in preview mode.
+
 ## File → Route Mapping
+
+**Markdown:**
 
 | File | Route |
 |---|---|
 | `docs/index.md` | `/` |
 | `docs/guide.md` | `/guide` |
 | `docs/jobs/index.md` | `/jobs` |
-| `docs/jobs/[:id]/index.md` | `/jobs/[:id]` |
+
+**OpenAPI** (from `api/chop-chop.yaml`):
+
+| Operation | Route |
+|---|---|
+| `GET /jobs` | `/get-jobs` |
+| `POST /jobs` | `/post-jobs` |
+| `GET /jobs/{id}` | `/get-jobs-id` |
 
 ## Architecture
 
 ```
-CWD (docdog.config.json + .env)
+CWD (docdog.yaml + .env)
          │
          ▼
    ┌─────────────┐
-   │   Config    │  name, docsDir, logo, port, cdnPort, cdnDir
+   │   Config    │  name, docsDir, logo, customCss, openApiDir
    │   Loader    │
    └──────┬──────┘
           │
-          ▼
-   ┌─────────────┐       ┌────────────────────────────────┐
-   │    File     │──────▶│  Route Builder                 │
-   │  Discoverer │       │  docs/jobs/index.md → /jobs    │
-   └─────────────┘       └───────────────┬────────────────┘
-                                         │
-                                         ▼
-                         ┌────────────────────────────────┐
-                         │  Markdoc Renderer              │
-                         │  .md → HTML + frontmatter      │
-                         └───────────────┬────────────────┘
-                                         │
-                                         ▼
-                         ┌────────────────────────────────┐
-                         │  Page Cache                    │
-                         │  Map<route, PageResult>        │
-                         │  + NavTree (from sidebars.yaml │
-                         │    or auto-generated)          │
-                         └───────┬────────────────┬───────┘
-                                 │                │
-             ┌───────────────────▼──┐    ┌────────▼──────────────────┐
-             │  preview command     │    │  build / deploy command   │
-             └───────────────────┬──┘    └────────┬──────────────────┘
-                                 │                │
-      ┌──────────────────────────┤         ┌──────▼─────────┐
-      │                          │         │  HTML Writer   │
-      ▼                          ▼         │  dist/ folder  │
-┌──────────┐          ┌──────────────────┐ └──────┬─────────┘
-│  Fastify │          │  File Watcher    │        │ deploy only
-│  :PORT   │          │  (chokidar)      │        ▼
-└────┬─────┘          └────────┬─────────┘ ┌──────────────────┐
-     │                         │           │  cdn/ folder     │
-     │            re-render +  │           │  Static Server   │
-     │            cache update ◀───────────┘  :CDN_PORT       │
-     ▼                         │           └──────────────────┘
-┌──────────┐                   │ SSE broadcast
-│  Browser │◀──────────────────┘  { type: 'reload' }
-│  :PORT   │
-└──────────┘
+    ┌─────┴──────────────────┐
+    ▼                        ▼
+┌─────────────┐   ┌──────────────────────┐
+│    File     │   │  OpenAPI Discovery   │
+│  Discoverer │   │  swagger-parser →    │
+│  .md files  │   │  ParsedOperation[]   │
+└──────┬──────┘   └──────────┬───────────┘
+       │                     │
+       ▼                     ▼
+┌────────────────┐  ┌────────────────────┐
+│ Markdoc Render │  │ OpenAPI Render     │
+│ .md → HTML     │  │ operation → HTML   │
+└───────┬────────┘  └────────┬───────────┘
+        │                    │
+        └────────┬───────────┘
+                 ▼
+  ┌────────────────────────────────┐
+  │  Page Cache                    │
+  │  Map<route, PageResult>        │
+  │  + NavTree (sidebars.yaml      │
+  │    or auto-generated)          │
+  └───────┬────────────────┬───────┘
+          │                │
+┌─────────▼────┐    ┌──────▼──────────────────┐
+│  preview     │    │  build / deploy         │
+└─────────┬────┘    └──────┬──────────────────┘
+          │                │
+   ┌──────┤         ┌──────▼─────────┐
+   │      │         │  HTML Writer   │
+   ▼      ▼         │  dist/ folder  │
+┌──────┐ ┌───────┐  └──────┬─────────┘
+│Fastify│ │Watcher│        │ deploy only
+│:PORT  │ │chokidar        ▼
+└──┬───┘ └───┬───┘  ┌──────────────────┐
+   │         │      │  cdn/ folder     │
+   │    SSE  │      │  Static Server   │
+   ▼  broadcast     │  :CDN_PORT       │
+┌──────┐    │      └──────────────────┘
+│Browser│◀──┘
+└──────┘
 ```
 
 ### Source layout
@@ -138,15 +191,18 @@ CWD (docdog.config.json + .env)
 ```
 src/
 ├── cli.ts                  ← commander entry point (preview, build, deploy)
-├── types.ts                ← shared types: PageResult, NavItem, Config, Runtime
+├── types.ts                ← shared types: PageResult, NavItem, Config, ParsedOperation
 ├── core/
-│   ├── config.ts           ← load docdog.config.json + .env, validate with zod
+│   ├── config.ts           ← load docdog.yaml + .env, validate with zod
 │   ├── discover.ts         ← walk docsDir → [{ filePath, route }]
+│   ├── discover-openapi.ts ← parse OpenAPI specs → ParsedOperation[]
+│   ├── render-openapi.ts   ← ParsedOperation → HTML string
 │   ├── renderer.ts         ← Markdoc: .md → { ok, html } | { ok: false, error }
+│   ├── css.ts              ← buildCss: default styles + custom CSS overrides
 │   ├── nav.ts              ← routes + sidebars.yaml → NavItem[]
 │   ├── sidebar.ts          ← load and parse sidebars.yaml
 │   ├── cache.ts            ← PageCache: Map<route, PageResult> + navTree
-│   └── minify.ts           ← HTML minification + size formatting
+│   └── minify.ts           ← HTML/CSS minification + size formatting
 ├── server/
 │   ├── dev-server.ts       ← Fastify: pages, /style.css, /__logo.*, /sse
 │   ├── static-server.ts    ← Fastify: serve cdn/ on CDN_PORT

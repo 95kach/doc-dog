@@ -18,3 +18,5 @@ export type Runtime = {
   cdnPort: number  // default 3100 (LOCAL_CDN_PORT)
   cdnDir: string   // absolute path (LOCAL_CDN_DIR)
 }
+
+export type FileEntry = { filePath: string; route: string }

@@ -13,7 +13,7 @@ export function renderFile(filePath: string, route: string): PageResult {
     )
     return { ok: true, route, filePath, html, frontmatter }
   } catch (err) {
-    return { ok: false, route, filePath, error: (err as Error).message }
+    return { ok: false, route, filePath, error: err instanceof Error ? err.message : String(err) }
   }
 }
 

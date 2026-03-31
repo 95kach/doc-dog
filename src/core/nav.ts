@@ -4,7 +4,7 @@ export function buildNavTree(routes: string[]): NavItem[] {
   const items: NavItem[] = []
   const groups = new Map<string, NavItem>()
 
-  for (const route of [...routes].sort()) {
+  for (const route of [...new Set(routes)].sort()) {
     if (route === '/') {
       items.unshift({ label: 'Home', href: '/', children: [] })
       continue
@@ -18,7 +18,7 @@ export function buildNavTree(routes: string[]): NavItem[] {
       const groupKey = '/' + parts.slice(0, -1).join('/')
       if (!groups.has(groupKey)) {
         const group: NavItem = {
-          label: toLabel(parts[parts.length - 2]),
+          label: toLabel(parts[0]),
           href: groupKey,
           children: [],
         }

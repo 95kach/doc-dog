@@ -16,7 +16,11 @@ const EnvSchema = z.object({
 })
 
 export function loadConfig(cwd: string): { config: Config; runtime: Runtime } {
-  dotenv.config({ path: path.join(cwd, '.env') })
+  const envPath = path.join(cwd, '.env')
+  const fileEnv = fs.existsSync(envPath)
+    ? dotenv.parse(fs.readFileSync(envPath, 'utf-8'))
+    : {}
+  const mergedEnv = { ...process.env, ...fileEnv }
 
   const configPath = path.join(cwd, 'docdog.config.json')
   if (!fs.existsSync(configPath)) {
@@ -25,7 +29,7 @@ export function loadConfig(cwd: string): { config: Config; runtime: Runtime } {
 
   const raw = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
   const parsed = ConfigSchema.parse(raw)
-  const env = EnvSchema.parse(process.env)
+  const env = EnvSchema.parse(mergedEnv)
 
   return {
     config: {

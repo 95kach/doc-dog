@@ -1,9 +1,11 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-
-export type FileEntry = { filePath: string; route: string }
+import type { FileEntry } from '../types.js'
 
 export function discoverFiles(docsDir: string): FileEntry[] {
+  if (!fs.existsSync(docsDir)) {
+    throw new Error(`docs directory not found: ${docsDir}`)
+  }
   const entries: FileEntry[] = []
 
   function walk(dir: string) {

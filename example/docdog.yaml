@@ -3,3 +3,4 @@ docsDir: ./docs
 logo:
   image: ./images/logo.svg
 customCss: ./theme-overrides.css
+openApiDir: ./api

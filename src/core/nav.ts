@@ -1,6 +1,27 @@
-import type { NavItem } from '../types.js'
+import * as path from 'node:path'
+import type { NavItem, SidebarEntry } from '../types.js'
+import { pageToRoute } from './sidebar.js'
 
-export function buildNavTree(routes: string[]): NavItem[] {
+export function buildNavTree(routes: string[], sidebar?: SidebarEntry[] | null): NavItem[] {
+  if (sidebar && sidebar.length > 0) {
+    return buildFromSidebar(routes, sidebar)
+  }
+  return buildAuto(routes)
+}
+
+function buildFromSidebar(routes: string[], sidebar: SidebarEntry[]): NavItem[] {
+  const routeSet = new Set(routes)
+  return sidebar
+    .map((entry): NavItem | null => {
+      const route = pageToRoute(entry.page)
+      if (!routeSet.has(route)) return null
+      const label = entry.label ?? deriveLabel(entry.page)
+      return { label, href: route, children: [] }
+    })
+    .filter((item): item is NavItem => item !== null)
+}
+
+function buildAuto(routes: string[]): NavItem[] {
   const items: NavItem[] = []
   const groups = new Map<string, NavItem>()
 
@@ -34,6 +55,16 @@ export function buildNavTree(routes: string[]): NavItem[] {
   }
 
   return items
+}
+
+function deriveLabel(page: string): string {
+  const base = path.basename(page, '.md')
+  // For index files, use the parent directory name
+  if (base === 'index') {
+    const dir = path.dirname(page)
+    return dir === '.' ? 'Home' : toLabel(path.basename(dir))
+  }
+  return toLabel(base)
 }
 
 function toLabel(slug: string): string {

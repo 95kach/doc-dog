@@ -26,5 +26,7 @@ export function discoverFiles(docsDir: string): FileEntry[] {
 export function filePathToRoute(docsDir: string, filePath: string): string {
   const relative = path.relative(docsDir, filePath).replace(/\\/g, '/')
   const withoutExt = relative.replace(/\.md$/, '')
-  return withoutExt === 'index' ? '/' : `/${withoutExt}`
+  if (withoutExt === 'index') return '/'
+  if (withoutExt.endsWith('/index')) return '/' + withoutExt.slice(0, -'/index'.length)
+  return `/${withoutExt}`
 }

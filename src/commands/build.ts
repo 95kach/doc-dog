@@ -10,7 +10,7 @@ export async function build(cwd: string = process.cwd(), outDir?: string): Promi
   const distDir = outDir ?? path.join(cwd, 'dist')
 
   const entries = discoverFiles(config.docsDir)
-  const cache = new PageCache()
+  const cache = new PageCache(config.docsDir)
   await cache.build(entries)
 
   const failures = cache.getFailures()

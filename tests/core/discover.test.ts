@@ -43,6 +43,15 @@ describe('discoverFiles', () => {
     })
   })
 
+  it('maps jobs/index.md to /jobs', () => {
+    fs.writeFileSync(path.join(tmpDir, 'jobs', 'index.md'), '# Jobs')
+    const entries = discoverFiles(tmpDir)
+    expect(entries).toContainEqual({
+      filePath: path.join(tmpDir, 'jobs', 'index.md'),
+      route: '/jobs',
+    })
+  })
+
   it('ignores non-.md files', () => {
     fs.writeFileSync(path.join(tmpDir, 'readme.txt'), 'text')
     const entries = discoverFiles(tmpDir)
@@ -61,5 +70,13 @@ describe('filePathToRoute', () => {
 
   it('converts nested file', () => {
     expect(filePathToRoute('/docs', '/docs/jobs/status.md')).toBe('/jobs/status')
+  })
+
+  it('converts subfolder index.md to parent route', () => {
+    expect(filePathToRoute('/docs', '/docs/jobs/index.md')).toBe('/jobs')
+  })
+
+  it('converts deeply nested index.md', () => {
+    expect(filePathToRoute('/docs', '/docs/jobs/[:id]/index.md')).toBe('/jobs/[:id]')
   })
 })

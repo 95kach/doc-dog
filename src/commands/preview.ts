@@ -9,7 +9,7 @@ export async function preview(cwd: string = process.cwd()): Promise<void> {
   const { config, runtime } = loadConfig(cwd)
 
   const entries = discoverFiles(config.docsDir)
-  const cache = new PageCache()
+  const cache = new PageCache(config.docsDir)
   await cache.build(entries)
 
   const failures = cache.getFailures()

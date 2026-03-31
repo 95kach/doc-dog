@@ -1,11 +1,17 @@
 import type { PageResult, NavItem, FileEntry } from '../types.js'
 import { renderFile } from './renderer.js'
 import { buildNavTree } from './nav.js'
+import { loadSidebar } from './sidebar.js'
 
 export class PageCache {
   private pages = new Map<string, PageResult>()
   private fileToRoute = new Map<string, string>()
   public navTree: NavItem[] = []
+  private docsDir: string
+
+  constructor(docsDir: string = '') {
+    this.docsDir = docsDir
+  }
 
   async build(entries: FileEntry[]): Promise<void> {
     for (const { filePath, route } of entries) {
@@ -39,7 +45,8 @@ export class PageCache {
   }
 
   rebuildNav(): void {
-    this.navTree = buildNavTree([...this.pages.keys()])
+    const sidebar = this.docsDir ? loadSidebar(this.docsDir) : null
+    this.navTree = buildNavTree([...this.pages.keys()], sidebar)
   }
 
   getRouteForFile(filePath: string): string | undefined {

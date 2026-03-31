@@ -1,0 +1,6 @@
+- page: index.md
+  label: Start here
+- page: jobs/index.md
+  label: Jobs
+- page: "jobs/[:id]/index.md"
+  label: Job Status
